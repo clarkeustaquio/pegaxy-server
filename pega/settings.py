@@ -25,7 +25,7 @@ SECRET_KEY = 'django-insecure-u8g#l^@tiopy9^w0!j___as)#9lz5jl_ubb0vo4t0*ck%senhp
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = ["*", "pegaxy-env.eba-hxnqu2mj.us-west-2.elasticbeanstalk.com", "pegalookup-env.eba-hxnqu2mj.us-west-2.elasticbeanstalk.com"]
 
 INSTALLED_APPS = [
     'api',

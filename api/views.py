@@ -119,10 +119,10 @@ def _vis_helper(data):
     results = list()
     total_races = 0
     for data in today_datas:
-        end_race = int(data['race']['end'])
+        start_race = int(data['race']['start'])
 
         today = datetime.datetime.now(datetime.timezone.utc).strftime('%Y-%m-%d')
-        date_race = datetime.datetime.utcfromtimestamp(end_race).strftime('%Y-%m-%d')
+        date_race = datetime.datetime.utcfromtimestamp(start_race).strftime('%Y-%m-%d')
 
         if today == date_race:
             total_races += 1
@@ -219,3 +219,87 @@ def manage_asset(request):
             })
 
     return Response(assets, status=status.HTTP_200_OK)
+
+@api_view(['POST'])
+def vis_chart(request):
+    pega_id = request.data['pega_id']
+    response = requests.get("{}{}".format(endpoints.pega_race_history_api, pega_id))
+    data = response.json()
+
+    today = datetime.datetime.now(datetime.timezone.utc)
+
+    chart = list()
+    race_date_history = list()
+
+    gold_list = list()
+    silver_list = list()
+    bronze_list = list()
+    vis_list = list()
+    race_list = list()
+    
+    for day in range(5):
+        calculate_date = (today - datetime.timedelta(days=day)).strftime('%Y-%m-%d')
+        
+        gold = 0
+        silver = 0
+        bronze = 0
+        vis = 0
+        total_race = 0
+
+        for race in data['data']:
+            start_race = int(race['race']['start'])
+
+            date_race = datetime.datetime.utcfromtimestamp(start_race).strftime('%Y-%m-%d')
+            if calculate_date == date_race:
+                total_race += 1
+
+                if race['position'] == 1:
+                    gold += 1
+                
+                if race['position'] == 2:
+                    silver += 1
+
+                if race['position'] == 3:
+                    bronze += 1
+
+                vis += race['reward']
+        race_date_history.append(calculate_date)
+        
+        gold_list.append(gold)
+        silver_list.append(silver)
+        bronze_list.append(bronze)
+        vis_list.append(vis)
+        race_list.append(total_race)
+
+    labels = ['Gold', 'Silver', 'Bronze', 'VIS', 'Total Race']
+    data_list = [gold_list, silver_list, bronze_list, vis_list, race_list]
+    background_color = [
+        static.gold_background,
+        static.silver_background,
+        static.bronze_background,
+        static.vis_background,
+        static.race_background
+    ]
+
+    border_color = [
+        static.gold_border,
+        static.silver_border,
+        static.bronze_border,
+        static.vis_border,
+        static.race_border
+    ]
+
+    for count, label in enumerate(labels):
+        chart.append({
+            'label': label,
+            'data': data_list[count],
+            'background': background_color[count],
+            'border': border_color[count]
+        })
+
+
+
+    return Response({
+        'chart': chart,
+        'labels': race_date_history
+    }, status=status.HTTP_200_OK)
